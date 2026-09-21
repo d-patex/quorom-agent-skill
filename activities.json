@@ -1,0 +1,152 @@
+[
+  {
+    "id": "act_01",
+    "name": "Public Mural Walk",
+    "category": "outdoors",
+    "cost_per_person": 0,
+    "duration_hours": 1.5,
+    "location": "Downtown",
+    "open_from": "08:00",
+    "open_until": "20:00"
+  },
+  {
+    "id": "act_02",
+    "name": "Riverfront Park Picnic",
+    "category": "outdoors",
+    "cost_per_person": 5,
+    "duration_hours": 2,
+    "location": "Riverfront",
+    "open_from": "09:00",
+    "open_until": "19:00"
+  },
+  {
+    "id": "act_03",
+    "name": "Ice Cream Tasting Stop",
+    "category": "food",
+    "cost_per_person": 6,
+    "duration_hours": 0.5,
+    "location": "East Side",
+    "open_from": "12:00",
+    "open_until": "21:00"
+  },
+  {
+    "id": "act_04",
+    "name": "Hot Chicken Tasting Tour",
+    "category": "food",
+    "cost_per_person": 45,
+    "duration_hours": 2.5,
+    "location": "Downtown",
+    "open_from": "11:00",
+    "open_until": "20:00"
+  },
+  {
+    "id": "act_05",
+    "name": "Botanical Garden Visit",
+    "category": "outdoors",
+    "cost_per_person": 18,
+    "duration_hours": 2,
+    "location": "West Side",
+    "open_from": "09:00",
+    "open_until": "17:00"
+  },
+  {
+    "id": "act_06",
+    "name": "Guitar Workshop",
+    "category": "music",
+    "cost_per_person": 55,
+    "duration_hours": 2,
+    "location": "Midtown",
+    "open_from": "10:00",
+    "open_until": "18:00"
+  },
+  {
+    "id": "act_07",
+    "name": "Country Music Hall of Fame",
+    "category": "museum",
+    "cost_per_person": 28,
+    "duration_hours": 2,
+    "location": "Downtown",
+    "open_from": "09:00",
+    "open_until": "17:00"
+  },
+  {
+    "id": "act_08",
+    "name": "Riverfront Kayak Rental",
+    "category": "outdoors",
+    "cost_per_person": 35,
+    "duration_hours": 2,
+    "location": "Riverfront",
+    "open_from": "09:00",
+    "open_until": "17:00"
+  },
+  {
+    "id": "act_09",
+    "name": "Distillery Tour and Tasting",
+    "category": "tour",
+    "cost_per_person": 32,
+    "duration_hours": 1.5,
+    "location": "Germantown",
+    "open_from": "11:00",
+    "open_until": "19:00"
+  },
+  {
+    "id": "act_10",
+    "name": "Downtown Ghost Tour",
+    "category": "tour",
+    "cost_per_person": 24,
+    "duration_hours": 1.5,
+    "location": "Downtown",
+    "open_from": "19:00",
+    "open_until": "23:00"
+  },
+  {
+    "id": "act_11",
+    "name": "Honky-Tonk Live Music Crawl",
+    "category": "nightlife",
+    "cost_per_person": 30,
+    "duration_hours": 3,
+    "location": "Broadway",
+    "open_from": "18:00",
+    "open_until": "23:59"
+  },
+  {
+    "id": "act_12",
+    "name": "Skyline Helicopter Tour",
+    "category": "tour",
+    "cost_per_person": 150,
+    "duration_hours": 1,
+    "location": "Airfield",
+    "open_from": "09:00",
+    "open_until": "17:00"
+  },
+  {
+    "id": "act_13",
+    "name": "Minor League Baseball Game",
+    "category": "sports",
+    "cost_per_person": 20,
+    "duration_hours": 3,
+    "location": "Ballpark District",
+    "open_from": "18:30",
+    "open_until": "22:00"
+  },
+  {
+    "id": "act_14",
+    "name": "Private Chef Dinner",
+    "category": "food",
+    "cost_per_person": 120,
+    "duration_hours": 2.5,
+    "location": "Your lodging",
+    "open_from": "17:00",
+    "open_until": "22:00"
+  },
+  {
+    "id": "act_15",
+    "name": "Recording Studio Tour",
+    "category": "music",
+    "cost_per_person": 38,
+    "duration_hours": 1,
+    "location": "Music Row",
+    "open_from": "10:00",
+    "open_until": "17:00"
+  }
+]

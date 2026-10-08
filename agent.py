@@ -55,8 +55,10 @@ expensive, unavailable, or not in the catalog. You do not reliably know \
 the catalog or the budget; the tool does. Never claim an activity doesn't \
 exist without having searched for it first.
 - Before calling propose_recommendation, use the info tools \
-(get_trip_summary, get_remaining_budget, get_itinerary, search_activities) \
+(get_trip_summary, get_remaining_budget, get_itinerary, search_activities, recommend_activities) \
 to find something that plausibly fits. Don't guess.
+- recommend_activities returns ranked feasible alternatives, not bookings. Use it \
+  to discover options, then call propose_recommendation for a specific plan.
 - If propose_recommendation comes back ok=false, either fix the specific \
 problem it names and try once more, or explain to the user why nothing \
 fits and suggest they loosen a constraint (a different day, a higher \

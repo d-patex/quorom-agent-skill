@@ -18,6 +18,9 @@ Run this file directly (`python tools.py`) for a quick manual smoke test.
 
 import json
 import sqlite3
+import math
+import re
+from datetime import date
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
@@ -208,10 +211,28 @@ def search_activities(
 # Tool 5: check_feasibility
 # ---------------------------------------------------------------------------
 
+def _validate_slot(day: int, start_time: str, trip_id: int) -> str | None:
+    """Validate a same-day request before comparing zero-padded times."""
+    if type(day) is not int or day < 1:
+        return "day must be a positive integer"
+    if not isinstance(start_time, str) or not re.fullmatch(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]", start_time):
+        return "start_time must be a valid 24-hour HH:MM time"
+    summary = get_trip_summary(trip_id)
+    if "error" in summary:
+        return summary["error"]
+    trip_days = (date.fromisoformat(summary["end_date"]) - date.fromisoformat(summary["start_date"])).days + 1
+    if day > trip_days:
+        return f"day must fall within the trip (1-{trip_days})"
+    if summary["group_size"] == 0:
+        return "trip must have at least one member"
+    return None
+
+
 def _add_hours(hhmm: str, hours: float) -> str:
     h, m = map(int, hhmm.split(":"))
     total_minutes = h * 60 + m + round(hours * 60)
-    total_minutes = min(total_minutes, 23 * 60 + 59)  # clamp to end of day
+    if total_minutes > 23 * 60 + 59:
+        raise ValueError("activity extends past the supported same-day boundary (23:59)")
     return f"{total_minutes // 60:02d}:{total_minutes % 60:02d}"
 
 
@@ -225,6 +246,9 @@ def check_feasibility(
     itinerary. Returns feasible=False with a specific reason on the first
     failure, so the caller always knows exactly why.
     """
+    error = _validate_slot(day, start_time, trip_id)
+    if error:
+        return {"feasible": False, "reason": error}
     activities = _load_activities()
     activity = activities.get(activity_id)
     if activity is None:
@@ -250,7 +274,10 @@ def check_feasibility(
             "total_cost": total_cost,
         }
 
-    end_time = _add_hours(start_time, activity["duration_hours"])
+    try:
+        end_time = _add_hours(start_time, activity["duration_hours"])
+    except ValueError as exc:
+        return {"feasible": False, "reason": str(exc)}
     if start_time < activity["open_from"] or end_time > activity["open_until"]:
         return {
             "feasible": False,
@@ -287,7 +314,87 @@ def check_feasibility(
 # Tool schemas (Anthropic tool-use format) and dispatcher
 # ---------------------------------------------------------------------------
 
+def recommend_activities(
+    day: int,
+    start_time: str,
+    max_cost: float | None = None,
+    category: str | None = None,
+    trip_id: int = 1,
+) -> dict:
+    """Rank independently feasible alternatives, never a combined booking.
+
+    Each option is checked against current trip state using the same guardrail
+    as propose_recommendation. Returning options does not reserve anything.
+    """
+    error = _validate_slot(day, start_time, trip_id)
+    if error:
+        return {"error": error}
+    if max_cost is not None and (
+        isinstance(max_cost, bool)
+        or not isinstance(max_cost, (int, float))
+        or not math.isfinite(max_cost)
+        or max_cost < 0
+    ):
+        return {"error": "max_cost must be a finite non-negative group total"}
+    if category is not None and (not isinstance(category, str) or not category.strip()):
+        return {"error": "category must be a non-empty string"}
+
+    budget = get_remaining_budget(trip_id)
+    if "error" in budget:
+        return budget
+    cost_limit = budget["remaining_budget"]
+    if max_cost is not None:
+        cost_limit = min(cost_limit, max_cost)
+    candidates = search_activities(max_cost=cost_limit, category=category, trip_id=trip_id)
+    recommendations = []
+    for activity in candidates["activities"]:
+        result = check_feasibility(activity["id"], day, start_time, trip_id)
+        if result["feasible"] and result["total_cost"] <= cost_limit:
+            recommendations.append({**result, "category": activity["category"]})
+    recommendations.sort(key=lambda result: (result["total_cost"], result["name"], result["activity_id"]))
+    return {
+        "day": day,
+        "start_time": start_time,
+        "remaining_budget": budget["remaining_budget"],
+        "cost_limit": cost_limit,
+        "group_size": candidates["group_size"],
+        "count": len(recommendations),
+        "recommendations": recommendations,
+        "message": "Options are alternatives, not bookings." if recommendations else "No activities fit these constraints.",
+    }
+
+
 TOOL_DEFINITIONS = [
+    {
+        "name": "recommend_activities",
+        "description": "Find ranked alternatives that fit a trip day, start time, current budget, opening hours and itinerary. Each option is independent and does not book anything. Still call propose_recommendation before presenting a specific plan.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "day": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "start_time": {
+                    "type": "string",
+                    "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$"
+                },
+                "max_cost": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Optional maximum total cost for the whole group."
+                },
+                "category": {
+                    "type": "string",
+                    "minLength": 1
+                }
+            },
+            "required": [
+                "day",
+                "start_time"
+            ]
+        }
+    },
     {
         "name": "get_trip_summary",
         "description": "Get the trip's dates, member list, and total budget.",
@@ -367,6 +474,7 @@ TOOL_DEFINITIONS = [
 ]
 
 _DISPATCH = {
+    "recommend_activities": recommend_activities,
     "get_trip_summary": get_trip_summary,
     "get_remaining_budget": get_remaining_budget,
     "get_itinerary": get_itinerary,
